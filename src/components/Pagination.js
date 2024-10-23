@@ -1,15 +1,19 @@
 import styled from 'styled-components';
 import { useEffect, useState } from 'react';
 import { useData } from './providers';
+import { useSearchParams } from 'react-router-dom';
 
 export function Pagination() {
   const [pages, setPages] = useState([]);
   const { apiURL, info, activePage, setActivePage, setApiURL } = useData();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const pageClickHandler = (index) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setActivePage(index);
     setApiURL(pages[index]);
+
+    setSearchParams({ page: index + 1 });
   };
 
   useEffect(() => {
@@ -23,6 +27,11 @@ export function Pagination() {
 
     setPages(createdPages);
   }, [apiURL, info]);
+
+  useEffect(() => {
+    const activePageFromUrl = searchParams.get('page') || 1;
+    setActivePage(activePageFromUrl - 1);
+  }, [searchParams, setActivePage]);
 
   if (pages.length <= 1) return null;
 
@@ -82,14 +91,6 @@ const Page = styled.span`
     color: #83bf46;
   }
 `;
-
-// const Container = styled.div`
-//   width: 100%;
-//   display: grid;
-//   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-//   justify-items: center;
-//   gap: 30px;
-// `;
 
 const Ellipsis = styled(Page)`
   cursor: default;
