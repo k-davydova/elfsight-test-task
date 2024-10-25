@@ -5,19 +5,19 @@ export function App() {
   const { isFetching, isError } = useData();
 
   return (
-    <Main>
+    <>
       <Header />
 
       <AppState />
 
       {!isFetching && !isError && (
-        <>
+        <Main>
           <ItemsGrid />
 
           <Pagination />
-        </>
+        </Main>
       )}
-    </Main>
+    </>
   );
 }
 

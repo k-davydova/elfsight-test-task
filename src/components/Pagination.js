@@ -1,24 +1,25 @@
 import styled from 'styled-components';
 import { useEffect, useState } from 'react';
-import { useData } from './providers';
-import { useSearchParams } from 'react-router-dom';
+import { API_URL, useData } from './providers';
 
 export function Pagination() {
   const [pages, setPages] = useState([]);
-  const { apiURL, info, activePage, setActivePage, setApiURL } = useData();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { info, activePage, setSearchParams } = useData();
 
   const pageClickHandler = (index) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    setActivePage(index);
-    setApiURL(pages[index]);
 
-    setSearchParams({ page: index + 1 });
+    setSearchParams((prevParams) => {
+      const updatedParams = new URLSearchParams(prevParams);
+      updatedParams.set('page', index + 1);
+
+      return updatedParams;
+    });
   };
 
   useEffect(() => {
     const createdPages = Array.from({ length: info.pages }, (_, i) => {
-      const URLWithPage = new URL(apiURL);
+      const URLWithPage = new URL(API_URL);
 
       URLWithPage.searchParams.set('page', i + 1);
 
@@ -26,12 +27,7 @@ export function Pagination() {
     });
 
     setPages(createdPages);
-  }, [apiURL, info]);
-
-  useEffect(() => {
-    const activePageFromUrl = searchParams.get('page') || 1;
-    setActivePage(activePageFromUrl - 1);
-  }, [searchParams, setActivePage]);
+  }, [info]);
 
   if (pages.length <= 1) return null;
 

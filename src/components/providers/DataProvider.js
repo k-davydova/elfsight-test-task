@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
-const API_URL = 'https://rickandmortyapi.com/api/character/';
+export const API_URL = 'https://rickandmortyapi.com/api/character/';
 
 export function DataProvider({ children }) {
   const [activePage, setActivePage] = useState(0);
@@ -9,11 +10,17 @@ export function DataProvider({ children }) {
   const [isFetching, setIsFetching] = useState(false);
   const [isError, setIsError] = useState(false);
   const [info, setInfo] = useState({});
-  const [apiURL, setApiURL] = useState(API_URL);
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const fetchData = async (url) => {
+  const fetchData = async () => {
     setIsFetching(true);
     setIsError(false);
+
+    const url = new URL(API_URL);
+
+    for (const [key, value] of searchParams.entries()) {
+      url.searchParams.set(key, value);
+    }
 
     axios
       .get(url)
@@ -21,7 +28,6 @@ export function DataProvider({ children }) {
         setIsFetching(false);
         setCharacters(data.results);
         setInfo(data.info);
-        console.log(data); // kk
       })
       .catch((e) => {
         setIsFetching(false);
@@ -31,21 +37,32 @@ export function DataProvider({ children }) {
   };
 
   useEffect(() => {
-    fetchData(apiURL);
-  }, [apiURL]);
+    const activePageFromUrl = searchParams.get('page');
+
+    if (!activePageFromUrl) {
+      setSearchParams((prevParams) => {
+        const params = new URLSearchParams(prevParams);
+        params.set('page', '1');
+
+        return params;
+      });
+    } else {
+      setActivePage(activePageFromUrl - 1);
+    }
+
+    fetchData();
+  }, [searchParams, setActivePage, setSearchParams]);
 
   const dataValue = useMemo(
     () => ({
       activePage,
-      setActivePage,
-      apiURL,
-      setApiURL,
+      setSearchParams,
       characters,
       isFetching,
       isError,
       info
     }),
-    [activePage, apiURL, characters, isFetching, isError, info]
+    [activePage, characters, isFetching, isError, info, setSearchParams]
   );
 
   return (
